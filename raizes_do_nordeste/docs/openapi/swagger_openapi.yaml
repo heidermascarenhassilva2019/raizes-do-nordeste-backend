@@ -1,0 +1,189 @@
+openapi: 3.0.3
+info:
+  title: API Rede Raízes do Nordeste
+  description: >
+    API RESTful estruturada em Arquitetura por Camadas (API, Aplicação, Domínio e Infraestrutura),
+    com Autenticação JWT/RBAC, Conformidade com a LGPD e Gateway de Pagamento Simulado/Mocado.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Servidor Local de Desenvolvimento
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+paths:
+  /auth/login:
+    post:
+      summary: Autenticar utilizador e gerar token JWT (Cenário T01)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: cliente@raizes.com
+                senha:
+                  type: string
+                  example: "123"
+      responses:
+        '200':
+          description: 200 OK - Login válido com retorno do token JWT
+        '401':
+          description: 401 Unauthorized - Credenciais inválidas
+  /unidades/{id}/cardapio:
+    get:
+      summary: Listar cardápio disponível na unidade (filtra estoque, tipo de cozinha e sazonalidade)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: mes
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 6
+      responses:
+        '200':
+          description: 200 OK - Lista de produtos disponíveis na unidade
+  /pedidos:
+    post:
+      summary: Criar Pedido Omnichannel (Cenários T02 e T03)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_unidade:
+                  type: integer
+                  example: 1
+                canalPedido:
+                  type: string
+                  enum: [APP, TOTEM, BALCAO, PICKUP, WEB]
+                  example: APP
+                id_cliente:
+                  type: integer
+                  example: 1
+                itens:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id_produto:
+                        type: integer
+                        example: 1
+                      quantidade:
+                        type: integer
+                        example: 2
+      responses:
+        '201':
+          description: 201 Created - Pedido criado com sucesso ({ "pedidoId": 1, ... })
+        '400':
+          description: 400 Bad Request - Canal inválido ou pedido sem itens
+        '403':
+          description: 403 Forbidden - Perfil sem permissão para criar pedido
+        '409':
+          description: 409 Conflict - Itens sem estoque disponível na unidade
+        '422':
+          description: 422 Unprocessable Entity - Restrição de cozinha reduzida, sazonalidade ou loja encerrada
+  /pedidos/{id}/pagamentos:
+    post:
+      summary: Processar pagamento via Simulated Payment Gateway (SUCCESS ou FAILURE)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            example: idem-ped-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dados_pagamento:
+                  type: object
+                  properties:
+                    token_pagamento:
+                      type: string
+                      example: tok_simulado_ok
+                    simularResultado:
+                      type: string
+                      enum: [SUCCESS, FAILURE, PENDENTE]
+                      example: SUCCESS
+      responses:
+        '200':
+          description: 200 OK - Resultado do gateway simulado (SUCCESS -> APROVADO / FAILURE -> RECUSADO)
+        '400':
+          description: 400 Bad Request - Tentativa de envio de PAN/CVV brutos (violação R11/RNF02)
+  /pedidos/{id}/cancelamento:
+    post:
+      summary: Cancelar pedido com registo obrigatório em log de auditoria (Restrito a GERENTE/MATRIZ)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                motivo:
+                  type: string
+                  example: Cliente solicitou cancelamento por erro na escolha
+      responses:
+        '200':
+          description: 200 OK - Pedido cancelado e auditado
+        '400':
+          description: 400 Bad Request - Motivo de cancelamento ausente
+        '403':
+          description: 403 Forbidden - Perfil sem autorização (ex. ATENDENTE)
+  /clientes/{id}/anonimizacao:
+    post:
+      summary: Anonimizar dados pessoais do cliente em conformidade com a LGPD preservando histórico financeiro
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 200 OK - Cliente anonimizado e auditoria registada
+  /relatorios/vendas:
+    get:
+      summary: Relatório consolidado de vendas por unidade e região (Restrito à MATRIZ)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 200 OK - Dados consolidados da rede
+        '403':
+          description: 403 Forbidden - Acesso negado para perfis fora da Matriz

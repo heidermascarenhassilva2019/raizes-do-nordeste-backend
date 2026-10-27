@@ -1,0 +1,19 @@
+$ python3 -B -m unittest discover -s tests -v
+
+test_T01_login_valido_retorna_200_e_token (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T02_acesso_sem_token_retorna_401 (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T03_acesso_perfil_sem_permissao_retorna_403 (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T04_validacao_campo_obrigatorio_ausente_retorna_400 (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T05_validacao_formato_ou_quantidade_invalida_retorna_400 (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T06_criar_pedido_valido_e_filtrar_por_canal (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T07_pedido_unidade_ou_produto_inexistente_retorna_404 (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T08_pedido_sem_estoque_retorna_409_conflict (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T09_pagamento_mock_aprovado_e_atualizacao_status_cozinha (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T10_pagamento_mock_recusado_e_bloqueio_preparo (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T11_logs_auditoria_cancelamento_e_lgpd_anonimizacao (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+test_T12_consulta_cardapio_fidelidade_e_relatorio_matriz (test_raizes_nordeste.TestRaizesDoNordestePlanoDeTestes) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.018s
+
+OK

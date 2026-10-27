@@ -1,0 +1,341 @@
+{
+  "info": {
+    "name": "Raízes do Nordeste - API Back-end (Plano de Testes T01 a T12)",
+    "description": "Coleção oficial organizada por módulos cobrindo fluxos positivos e negativos do roteiro.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "tokenCliente",
+      "value": ""
+    },
+    {
+      "key": "tokenCozinheiro",
+      "value": ""
+    },
+    {
+      "key": "tokenGerente",
+      "value": ""
+    },
+    {
+      "key": "tokenMatriz",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "T01 - Login válido (POST /auth/login)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente1@raizes.com\",\n  \"senha\": \"123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cardápio e Pedidos (Multicanalidade)",
+      "item": [
+        {
+          "name": "T12a - Consultar Cardápio da Unidade em Junho (GET /unidades/1/cardapio?mes=6)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/unidades/1/cardapio?mes=6"
+          }
+        },
+        {
+          "name": "T06a - Criar Pedido Válido com canalPedido (POST /pedidos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_unidade\": 1,\n  \"canalPedido\": \"TOTEM\",\n  \"id_cliente\": 1,\n  \"itens\": [\n    { \"id_produto\": 1, \"quantidade\": 2 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "T06b - Filtrar Pedidos por Canal e Paginação (GET /pedidos?canalPedido=TOTEM)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos?canalPedido=TOTEM&page=1&limit=10"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Pagamento Mock e Status",
+      "item": [
+        {
+          "name": "T09a - Solicitar Pagamento Mock Aprovado (POST /pedidos/1/pagamentos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "chave-pag-001"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos/1/pagamentos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dados_pagamento\": {\n    \"token_pagamento\": \"tok_pagamento_aprovado\",\n    \"simularResultado\": \"SUCCESS\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "T09b - Atualizar Status para EM_PREPARO (PATCH /pedidos/1/status)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCozinheiro}}"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos/1/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"novo_status\": \"EM_PREPARO\"\n}"
+            }
+          }
+        },
+        {
+          "name": "T10 - Solicitar Pagamento Mock Recusado (POST /pedidos/2/pagamentos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "chave-pag-002"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos/2/pagamentos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dados_pagamento\": {\n    \"token_pagamento\": \"tok_cartao_recusado\",\n    \"simularResultado\": \"FAILURE\"\n  }\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. LGPD, Fidelidade, Auditoria e Matriz",
+      "item": [
+        {
+          "name": "T12b - Consultar Extrato de Fidelidade com CPF Mascarado (GET /clientes/1/fidelidade)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes/1/fidelidade"
+          }
+        },
+        {
+          "name": "T11a - Cancelar Pedido com Auditoria (POST /pedidos/1/cancelamento)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenGerente}}"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos/1/cancelamento",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Cancelamento solicitado pelo cliente no balcão\"\n}"
+            }
+          }
+        },
+        {
+          "name": "T11b - Anonimizar Dados do Cliente LGPD (POST /clientes/1/anonimizacao)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes/1/anonimizacao",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Solicitação do titular (Art. 18 LGPD)\"\n}"
+            }
+          }
+        },
+        {
+          "name": "T11c - Consultar Logs de Auditoria (GET /auditoria/logs)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenMatriz}}"
+              }
+            ],
+            "url": "{{baseUrl}}/auditoria/logs"
+          }
+        },
+        {
+          "name": "T12c - Relatório Consolidado de Vendas da Matriz (GET /relatorios/vendas)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenMatriz}}"
+              }
+            ],
+            "url": "{{baseUrl}}/relatorios/vendas"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Cenários de Erro (400, 401, 403, 404, 409)",
+      "item": [
+        {
+          "name": "T02 - Erro 401 Sem Token (GET /pedidos)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/pedidos"
+          }
+        },
+        {
+          "name": "T03 - Erro 403 Perfil Sem Permissão (GET /relatorios/vendas)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenGerente}}"
+              }
+            ],
+            "url": "{{baseUrl}}/relatorios/vendas"
+          }
+        },
+        {
+          "name": "T04 - Erro 400 Pedido Sem Itens (POST /pedidos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_unidade\": 1,\n  \"canalPedido\": \"APP\",\n  \"itens\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "T07 - Erro 404 Produto Inexistente (POST /pedidos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_unidade\": 1,\n  \"canalPedido\": \"APP\",\n  \"itens\": [{ \"id_produto\": 999, \"quantidade\": 1 }]\n}"
+            }
+          }
+        },
+        {
+          "name": "T08 - Erro 409 Estoque Insuficiente (POST /pedidos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_unidade\": 1,\n  \"canalPedido\": \"APP\",\n  \"itens\": [{ \"id_produto\": 1, \"quantidade\": 999 }]\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
